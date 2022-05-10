@@ -106,12 +106,20 @@ class Timepicker {
 
   _setTimeValue(value, source) {
     if (this.targetEl.nodeName === "INPUT") {
-      if (value !== null || this.targetEl.value != "") {
-        this.targetEl.value = value;
-      }
-
       var tp = this;
       var settings = tp.settings;
+
+      if (value !== null || this.targetEl.value != "") {
+        if(settings.inputValue24H){
+          var timeIntAny = this.anytime2int(value);
+          this.targetEl.value = this._int2time24(timeIntAny);
+        }else{
+          this.targetEl.value = value;
+        }
+        
+      }
+
+      
 
       if (settings.useSelect && source != "select" && tp.list) {
         tp.list.val(tp._roundAndFormatTime(tp.anytime2int(value)));
@@ -467,6 +475,92 @@ class Timepicker {
     var hour, code;
     for (var i = 0; i < this.settings.timeFormat.length; i++) {
       code = this.settings.timeFormat.charAt(i);
+      switch (code) {
+        case "a":
+          output +=
+            time.getHours() > 11
+              ? this.settings.lang.pm
+              : this.settings.lang.am;
+          break;
+
+        case "A":
+          output +=
+            time.getHours() > 11
+              ? this.settings.lang.PM
+              : this.settings.lang.AM;
+          break;
+
+        case "g":
+          hour = time.getHours() % 12;
+          output += hour === 0 ? "12" : hour;
+          break;
+
+        case "G":
+          hour = time.getHours();
+          if (timeInt === ONE_DAY) hour = this.settings.show2400 ? 24 : 0;
+          output += hour;
+          break;
+
+        case "h":
+          hour = time.getHours() % 12;
+
+          if (hour !== 0 && hour < 10) {
+            hour = "0" + hour;
+          }
+
+          output += hour === 0 ? "12" : hour;
+          break;
+
+        case "H":
+          hour = time.getHours();
+          if (timeInt === ONE_DAY) hour = this.settings.show2400 ? 24 : 0;
+          output += hour > 9 ? hour : "0" + hour;
+          break;
+
+        case "i":
+          var minutes = time.getMinutes();
+          output += minutes > 9 ? minutes : "0" + minutes;
+          break;
+
+        case "s":
+          seconds = time.getSeconds();
+          output += seconds > 9 ? seconds : "0" + seconds;
+          break;
+
+        case "\\":
+          // escape character; add the next character and skip ahead
+          i++;
+          output += this.settings.timeFormat.charAt(i);
+          break;
+
+        default:
+          output += code;
+      }
+    }
+
+    return output;
+  }
+
+  _int2time24(timeInt) {
+    if (typeof timeInt != "number") {
+      return null;
+    }
+
+    var seconds = parseInt(timeInt % 60),
+      minutes = parseInt((timeInt / 60) % 60),
+      hours = parseInt((timeInt / (60 * 60)) % 24);
+
+    var time = new Date(1970, 0, 2, hours, minutes, seconds, 0);
+
+    if (isNaN(time.getTime())) {
+      return null;
+    }
+
+    var output = "";
+    var hour, code;
+    var format24 = "H:i";
+    for (var i = 0; i < format24.length; i++) {
+      code = format24.charAt(i);
       switch (code) {
         case "a":
           output +=

@@ -27,7 +27,8 @@ const DEFAULT_SETTINGS = {
   timeFormat: "g:ia",
   typeaheadHighlight: true,
   useSelect: false,
-  wrapHours: true
+  wrapHours: true,
+  inputValue24H: true
 };
 
 const DEFAULT_LANG = {
